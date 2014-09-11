@@ -1,0 +1,1034 @@
+
+package com.mm.struts.corpo.action;
+
+import java.io.PrintWriter;
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.struts.action.Action;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+
+
+import com.mm.core.master.*;
+
+public class MentorReqDetailAction extends Action {
+	
+	
+	public ActionForward execute(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response) throws Exception 
+	{
+		HttpSession session = request.getSession();
+		String numCount = (String)session.getAttribute("numCount");
+		int count = Integer.parseInt(numCount);
+		int remander = count%2;
+		
+		String uId =(String)session.getAttribute("uId");
+		String compId =(String)session.getAttribute("compId");
+		Vector allRights =(Vector)session.getAttribute("allRights");
+		String adminFlag = allRights.elementAt(18).toString();
+		
+		////////System.out.println("uId..in Action avdt Detail..in mdla>......."+uId);
+		//////////System.out.println("compId..in Action avdt ...Detail...in mdla>..."+compId);
+		//////////System.out.println("adminFlag..in Action avdt ..Detail...in mdla>...."+adminFlag);
+		
+		
+		
+		String strPgType = (request.getParameter("pgtyp")!=null) ? request.getParameter("pgtyp").trim() : "Detail";
+		String strShortBy = (request.getParameter("sby")!=null) ? request.getParameter("sby") : "creation_date";
+		session.setAttribute("pgtyp",strPgType);
+		//////////System.out.println("strPgType..in Action avdt ..Detail.in mdla>......"+strPgType);
+		
+		int minVal = (request.getParameter("numMin")!=null) ? Integer.parseInt(request.getParameter("numMin")) : 0;
+		int maxVal = 10;
+		//EntpMaster am = new EntpMaster();
+		AdvtMaster advtMaster = new AdvtMaster();
+		RootMaster rootMaster = new RootMaster();
+		
+		String strComplaintHtml = "";
+		
+				
+		if(strPgType.equalsIgnoreCase("Detail"))
+		{	
+			//////////System.out.println("In side for loop............... ");
+			String numCompId = (request.getParameter("numCopmId")!=null) ? request.getParameter("numCopmId").trim() : "0";
+			session.setAttribute("numCopmId", numCompId);
+			//////////System.out.println("numCopmId on ComplaintDetail page in in mdla>in mdla> "+numCompId);
+			String pageid = (request.getParameter("pageid")!=null) ? request.getParameter("pageid").trim() : "1";
+			session.setAttribute("pageid", pageid);
+			//////////System.out.println("pageid on ComplaintDetail page inin mdla>in mdla>in mdla>  "+pageid);
+	    	if(!numCompId.equalsIgnoreCase("0"))
+	    	{	
+	    		Vector<String> paramVec1 = new Vector<String>();
+				
+				paramVec1.add(uId);
+				paramVec1.add(compId);
+				paramVec1.add(adminFlag);	
+				paramVec1.add(pageid);	
+				
+	    		
+	    		Vector<String> paramVec2 = new Vector<String>();
+	    		paramVec2.add(uId);
+	    		paramVec2.add(compId);
+	    		paramVec2.add(numCompId);
+	    		paramVec2.add(adminFlag);
+	//	    	-------------------------
+		    	//int numArray[] = md.getCompanyMoves(numCopmId, getDataSource(request, "main"), minVal, maxVal, strFShortBy);
+		    	
+	//	    	-------------------------
+	    		int totalRow = 0;
+		    	
+	    		totalRow = advtMaster.getComplaintCount(getDataSource(request, "corpo"),paramVec1);
+	    		
+				//////////System.out.println("totalRow on ComplaintDetail pagein mdla>in mdla> "+totalRow);
+		    	String strPageHtml = getPages(minVal, maxVal, totalRow, strPgType);
+				////////////System.out.println("Pages "+strValue);
+		    	Vector complaintVec = advtMaster.getComplaintDetails(getDataSource(request, "corpo"),paramVec2);
+		    	//////////System.out.println("complaint details Vector.on ComplaintDetail page..in mdla>in mdla>.."+complaintVec);
+		    	
+		    	int advt_id = Integer.parseInt(complaintVec.elementAt(18).toString().trim());
+		    	////////////System.out.println("advt_id, on ComplaintDetail page....."+advt_id);
+		    	Vector brandVec = rootMaster.getCompanyDetail(getDataSource(request, "corpo"), advt_id);		    	
+		    	////////////System.out.println("brandVec, .on ComplaintDetail page...."+brandVec);
+		    	
+		    	int login_id = Integer.parseInt(complaintVec.elementAt(11).toString().trim());
+		    	////////////System.out.println("login_id, ...on ComplaintDetail page.."+login_id);
+		    	Vector complainantVec = rootMaster.getUserInfo(getDataSource(request, "corpo"), login_id);		    	
+		    	////////////System.out.println("complainantVec, ..on ComplaintDetail page..."+complainantVec);
+//		    	complainant Information
+		    	int consCityId = Integer.parseInt(complainantVec.elementAt(6).toString().trim());
+		    	String consCityname = rootMaster.getPlaceName(getDataSource(request, "corpo"), consCityId);		    	
+		    	int consStateId = Integer.parseInt(complainantVec.elementAt(7).toString().trim());
+		    	String consStateName = rootMaster.getStateName(getDataSource(request, "corpo"), consStateId);		    	
+		    	int consCountryId = Integer.parseInt(complainantVec.elementAt(11).toString().trim());
+		    	String consCountryname = rootMaster.getCountryName(getDataSource(request, "corpo"), consCountryId);
+		    	
+		    	int dealer_id = Integer.parseInt(complaintVec.elementAt(20).toString().trim());
+		    	////////////System.out.println("dealer_id, ..on ComplaintDetail page..."+dealer_id);
+		    	Vector delareVec = new Vector();
+		    	
+		    	if(dealer_id!= 0)
+		    	{
+		    	delareVec = rootMaster.getDealerDetail(getDataSource(request, "corpo"), dealer_id);
+		    	int dealerCityId = Integer.parseInt(delareVec.elementAt(6).toString().trim());
+		    	String dealerCityname = rootMaster.getPlaceName(getDataSource(request, "corpo"), dealerCityId);		    	
+		    	int dealerStateId = Integer.parseInt(delareVec.elementAt(4).toString().trim());
+		    	String dealerStateName = rootMaster.getStateName(getDataSource(request, "corpo"), dealerStateId);		    	
+		    	int dealerCountryId = Integer.parseInt(delareVec.elementAt(12).toString().trim());
+		    	String dealerCountryname = rootMaster.getCountryName(getDataSource(request, "corpo"), dealerCountryId);
+		    	
+		    	delareVec.add(dealerCityname);//13
+		    	delareVec.add(dealerStateName);//14
+		    	delareVec.add(dealerCountryname);//15
+		    	}
+		    	////////////System.out.println("delareVec, ..on ComplaintDetail page..."+delareVec);
+		    	
+		    	int cat_id = Integer.parseInt(complaintVec.elementAt(4).toString().trim());
+		    	int tag_id = Integer.parseInt(complaintVec.elementAt(21).toString().trim());
+		    	////////////System.out.println("cat_id, ....."+cat_id);
+		    	////////////System.out.println("tag_id, ....."+tag_id);
+		    	
+		    	
+		    	String catName = rootMaster.getStrCategoryName(getDataSource(request, "corpo"), cat_id);
+		    	////////////System.out.println("catName, ....."+catName);
+		    	
+		    	
+		    	String tagName = rootMaster.getStrTagName(getDataSource(request, "corpo"), tag_id);
+		    	////////////System.out.println("tagName, ....."+tagName);
+		    	
+		    	//get no of responses for this page by using getCompanyType() method of rootmaster
+				//get all company list with the no of responses accorrding to company type. rootmaster.getResponseList()
+				Vector<String> respDataVec = new Vector<String>();
+				respDataVec.add(numCompId);
+				respDataVec.add("Advertiser");
+				Vector responseVec = rootMaster.getResponseList(getDataSource(request, "corpo"), respDataVec);
+				////////////System.out.println("responseVec..in Action avdt ..Detail......."+responseVec);
+				int totleRsponse = responseVec.size();
+				int indvResponse = 0;
+				int advtResponse = 0;
+				int entpResponse = 0;
+				////////////System.out.println("responseVec>>>"+responseVec);
+				
+				for(int i=0;i<responseVec.size();i++)
+				{
+					Vector tempVec =(Vector)responseVec.elementAt(i);
+					String comp_type = tempVec.elementAt(5).toString().trim();
+					///
+					if(comp_type.equalsIgnoreCase("Advertiser"))
+					{
+						advtResponse++;
+						
+					}
+					else if(comp_type.equalsIgnoreCase("Corporates"))
+					{
+						advtResponse++;
+						
+					}
+					else if(comp_type.equalsIgnoreCase("Enterprise"))
+					{
+						entpResponse++;
+					}
+					else if(comp_type.equalsIgnoreCase("Consumer"))
+					{
+						indvResponse++;
+					}
+				}
+		    	//end of response getting code
+				
+		    	
+		    	Vector<String> infoVec = new Vector<String>();
+		    	infoVec.add(catName);//0//catName
+		    	infoVec.add(tagName);//1//tagName
+		    	infoVec.add(consCityname);//2// Consumer City nane
+		    	infoVec.add(consStateName);//3// Consumer State nane
+		    	infoVec.add(consCountryname);//4// Consumer Country nane
+		    	
+		    	infoVec.add(String.valueOf(totleRsponse));//5// total no of responses
+		    	infoVec.add(String.valueOf(indvResponse));//6// Consumer responses
+		    	infoVec.add(String.valueOf(advtResponse));//7// brand responses
+		    	infoVec.add(String.valueOf(entpResponse));//8// Core responses
+		    	String strUnnamed = getComplaintUnnamed(request, Integer.parseInt(numCompId.trim()), advt_id, cat_id);
+		    	////////////System.out.println("infoVec, ....."+infoVec);
+		    	strComplaintHtml = getComplaintDetail(strUnnamed, request,numCompId, strPageHtml, complaintVec, brandVec, complainantVec, delareVec,responseVec, infoVec,pageid,  strShortBy, remander);
+	    	}
+		}
+		
+		
+		/**
+	     * setContentType - text/html to write String on page.
+	     * PrintWriter - This line use to get writer to write on page.
+	     * out.println - use to write string. 
+	     * 
+	     */
+		response.setContentType("text/html;charset=ISO-8859-1");
+	    PrintWriter out = response.getWriter();
+	    out.println(strComplaintHtml);
+	    out.flush();
+		
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+	private String getComplaintDetail(String strUnnamed, HttpServletRequest request, String numCompId,String strPageHtml,Vector complaintVec,Vector brandVec,Vector complainantVec,Vector delareVec ,Vector responseVec, Vector infoVec,String pageid, String strShortBy, int remander)
+	{
+		
+		
+		int z=0;
+		String strResult="success";
+		String result = "success";
+		RootMaster rootMaster = new RootMaster();
+		int tag_id = Integer.parseInt(complaintVec.elementAt(21).toString().trim());
+		int publish_flag =  Integer.parseInt(complaintVec.elementAt(24).toString().trim());
+		String  publish_on =  complaintVec.elementAt(25).toString().trim();
+		int Consumerresponse=0,brandresponse=0,coreresponse=0,totalresponse=0;
+		totalresponse = Integer.parseInt(infoVec.elementAt(5).toString().trim()); 
+		Consumerresponse = Integer.parseInt(infoVec.elementAt(6).toString().trim()); 
+		brandresponse = Integer.parseInt(infoVec.elementAt(7).toString().trim()); 
+		coreresponse = Integer.parseInt(infoVec.elementAt(8).toString().trim()); 
+    	String brnadName = complaintVec.elementAt(27).toString().trim();
+    	int respid=(request.getParameter("respid")!=null) ? Integer.parseInt(request.getParameter("respid")) : 0;
+    	if(!brnadName.equals(""))
+    	{
+    		brnadName = brnadName+"(Other)";
+    	}
+    	else
+    	{
+    		brnadName = brandVec.elementAt(1).toString().trim();
+    	}
+		String strDetailHtml ="";
+		
+		
+		
+
+		  	strDetailHtml+="<table  height = \"350\" width=\"100%\" >";
+		  
+
+		  	strDetailHtml+="<tr>";
+		  //////////////////////////// start td for complaint detail
+			strDetailHtml+="<td width=\"57%\" valign=\"top\"><div style =\" height:350px; overflow-y:scroll; \">";
+			strDetailHtml+="<table width=\"100%\"   border=\"0\" >";
+		  	strDetailHtml += "<tr  >";
+	        strDetailHtml += "<td >";
+	       
+	        
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td width=\"35%\" align=\"left\"class=\"bold\" > &nbsp;&nbsp;&nbsp;Query Title:</td>";
+	        strDetailHtml += "<td  width=\"65%\" align=\"left\" ></td>";
+	        strDetailHtml += "</tr>";
+	        strDetailHtml += "<tr >";
+	        strDetailHtml += "<td colspan=\"2\"  align=\"left\"  width=\"100%\" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;"+complaintVec.elementAt(1).toString().trim()+" </td>";
+	       
+	        strDetailHtml += "</tr>";
+	       
+	       
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td colspan=\"2\" ><hr color=\"#ff722b\"></td>";
+	        strDetailHtml += "</tr>";
+	        
+	        
+	        String strFMsgcompl = "";
+			String strMessagecompl = complaintVec.elementAt(2).toString()!=null ? complaintVec.elementAt(2).toString().trim():"";
+			
+			for(int x=0; x<strMessagecompl.length(); x++)
+			{ 
+				int numcompl = (int)strMessagecompl.charAt(x);
+				if(numcompl == 10)
+				{
+					strFMsgcompl = strFMsgcompl+"<br><br>";
+				}
+				else
+				{
+					strFMsgcompl = strFMsgcompl+strMessagecompl.charAt(x);
+				}
+			}
+		  
+			
+			
+				strDetailHtml += "<tr align=\"left\">";
+		        strDetailHtml += "<td  align=\"left\" class=\"bold\" > &nbsp;&nbsp;&nbsp;Query Text:</td>";
+		        strDetailHtml += "<td  align=\"left\" ><span ></span></td>";
+		        strDetailHtml += "</tr>";
+		        strDetailHtml += "<tr align=\"left\">";
+		        strDetailHtml += "<td  colspan=\"2\" ><table width=\"100%\" align=\"center\"><tr><td width=\"5%\"></td><td align=\"left\"> &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+strFMsgcompl+"</td><td width=\"5%\"></td></tr></table></td>";
+		        strDetailHtml += "</tr>";
+		        
+		        strDetailHtml += "<tr align=\"left\">";
+		        strDetailHtml += "<td colspan=\"2\" ><hr color=\"#ff722b\"></td>";
+		        strDetailHtml += "</tr>";
+		        
+		        if((complaintVec.elementAt(3).toString()).length()!=0){
+					String strFMsgcomp3 = "";
+					String strMessagecomp3 = complaintVec.elementAt(3).toString()!=null ? complaintVec.elementAt(3).toString().trim():"";
+					
+					for(int x=0; x<strMessagecomp3.length(); x++)
+					{ 
+						int numcomp3 = (int)strMessagecomp3.charAt(x);
+						if(numcomp3 == 10)
+						{
+							strFMsgcomp3 = strFMsgcomp3+"<br><br>";
+						}
+						else
+						{
+							strFMsgcomp3 = strFMsgcomp3+strMessagecomp3.charAt(x);
+						}
+					}
+					
+					
+					strDetailHtml += "<tr align=\"left\">";
+					strDetailHtml += "<td  align=\"left\" class=\"bold\" > &nbsp;&nbsp;&nbsp;Relevent Text:</td>";
+			        strDetailHtml += "<td  align=\"left\" ><span ></span></td>";
+			        strDetailHtml += "</tr>";	
+			        
+			        strDetailHtml += "<tr align=\"left\">";
+			        strDetailHtml += "<td width=\"80%\" colspan=\"2\" >&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+strFMsgcomp3+"</td>";
+			        strDetailHtml += "</tr>";	
+			       
+			        
+				
+				}
+		       
+		        
+		       
+			
+		  strDetailHtml+="</table>";
+		  strDetailHtml+="</div></td>";
+		  	// End td for complaint detail
+		  	strDetailHtml+="<td width=\"1%\"></td>";
+		  	
+		  	 // start td for additional detail
+		  	strDetailHtml+="<td  width=\"340\" valign=\"top\" align=\"left\"><div style =\" height:350px; overflow-y:scroll; \">";
+		    strDetailHtml+="<table width=\"100%\" valign=\"top\"  border=\"0\" >";
+		  	strDetailHtml += "<tr align=\"left\" valign=\"top\" >";
+	        strDetailHtml += "<td  align=\"left\" valign=\"top\"  colspan=\"2\" class=\"bold\">Query Information</td>";
+	        strDetailHtml += "</tr>";
+	        
+	        strDetailHtml += "<tr align=\"left\" valign=\"top\">";
+	        strDetailHtml += "<td  align=\"right\"class=\"bold\" >Query ID:  </td>";
+	        strDetailHtml += "<td  align=\"left\" ><span >"+complaintVec.elementAt(17).toString().trim()+" </span></td>";
+	        strDetailHtml += "</tr>";
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td  align=\"right\"class=\"bold\" > Date: </td>";
+	        strDetailHtml += "<td  align=\"left\" ><span >"+complaintVec.elementAt(5).toString().trim()+"</span></td>";
+	        strDetailHtml += "</tr>";
+	        
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td  align=\"right\"class=\"bold\" > Category: </td>";
+	        strDetailHtml += "<td  align=\"left\" ><span >"+infoVec.elementAt(0).toString().trim()+" </span></td>";
+	        strDetailHtml += "</tr>";
+	        
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td colspan=\"2\" ><hr color=\"#ff722b\"></td>";
+	        strDetailHtml += "</tr>";
+	        
+	        
+	        strDetailHtml += "<tr align=\"left\" width=\"340\">";
+	        strDetailHtml += "<td colspan=\"2\"   >";
+	        strDetailHtml += "<table>";
+	        strDetailHtml += "<tr>";
+	        strDetailHtml += "<td valign=\"top\" >";
+	        strDetailHtml += "<table width=\"100%\">";
+	        strDetailHtml += "<tr >";
+	        strDetailHtml += "<td  align=\"left\" class=\"bold\"  >&nbsp;&nbsp; Status: </td>";
+	        strDetailHtml += " <td align=\"left\" ><span >"+infoVec.elementAt(1).toString().trim()+"</span></td>";
+	        strDetailHtml += "</tr>";
+	       
+	        strDetailHtml += "</table>";
+	        strDetailHtml += "</td>";
+	      
+	        strDetailHtml += "<td  valign=\"top\">";
+	        strDetailHtml += "<table width=\"100%\">";
+	        strDetailHtml += "<tr >";
+	        strDetailHtml += "<td  align=\"left\" class=\"bold\" >&nbsp;&nbsp; Publish: </td>";
+	                
+		    if((complaintVec.elementAt(26).toString()).equalsIgnoreCase("1@Week"))
+			{
+		    strDetailHtml += " <td  align=\"left\"><span >1 Week</span></td>";
+			}
+		    else if((complaintVec.elementAt(26).toString()).equalsIgnoreCase("2@Week"))
+			{
+		    strDetailHtml += " <td   align=\"left\"><span >2 Week</span></td>";
+			}
+		    else if((complaintVec.elementAt(26).toString()).equalsIgnoreCase("4@Week"))
+			{
+		    strDetailHtml += " <td   align=\"left\"><span >4 Week</span></td>";
+			}
+		    else if((complaintVec.elementAt(26).toString()).equalsIgnoreCase("6@Week"))
+			{
+		    strDetailHtml += " <td   align=\"left\"><span >6 Week</span></td>";
+			}
+		    else{
+		    strDetailHtml += " <td   align=\"left\"><span >Immediate</span></td>";	   
+		    }
+	        
+	        
+	     
+	        strDetailHtml += "</tr>";
+	        strDetailHtml += "</table>";
+	        strDetailHtml += "</td>";
+	        
+	        strDetailHtml += "</tr>";
+	        strDetailHtml += "</table>";
+	        strDetailHtml += "</td>";
+	        strDetailHtml += "</tr>";
+	        
+	       	       
+	        strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td colspan=\"2\" ><hr color=\"#ff722b\"></td>";
+	        strDetailHtml += "</tr>";
+	        strDetailHtml +="<tr>";
+			strDetailHtml +="<td colspan=\"2\" align=\"left\" class=\"bold\"> Company Information </td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" width=\"40%\"  class=\"bold\"> Company Name: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+brandVec.elementAt(1).toString().trim()+"</td>";
+			strDetailHtml +="</tr>";
+			
+		 	strDetailHtml += "<tr align=\"left\">";
+	        strDetailHtml += "<td colspan=\"2\" ><hr color=\"#ff722b\"></td>";
+	        strDetailHtml += "</tr>";
+	        
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td colspan=\"2\" align=\"left\" class=\"bold\"> Dealer Information </td>";
+			strDetailHtml +="</tr>";
+			if(delareVec.size()>0)
+			{
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer Name: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(1).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer Address: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(11).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer Country:</td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(15).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer State: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(14).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer District: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(13).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> Dealer City: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(13).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td colspan=\"2\" align=\"left\" class=\"bold\">Dealer Contact Person Infomation</td> ";      
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\">Name:</td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(2).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+				String temMno1="N/A";
+			    if((delareVec.elementAt(8).toString().trim().length()!=0)||(delareVec.elementAt(9).toString().trim().length()!=0)){
+					//////////System.out.println("insite");
+					if(delareVec.elementAt(8).toString().trim().length()!=0){
+					String temPno=delareVec.elementAt(8).toString().trim();
+					
+					temMno1 = temPno.replace("~", "-");
+					}else
+					{
+						String temPno=delareVec.elementAt(9).toString().trim();
+						
+						temMno1 = temPno.replace("~", "-");
+					}
+				}
+				
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\"  class=\"bold\">Mob No./Ph No.:  </td>";
+				strDetailHtml +="<td   align=\"left\">&nbsp;"+temMno1+"</td>";
+				strDetailHtml +="</tr>";
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"right\" class=\"bold\"> EMail Id: </td>";
+				strDetailHtml +="<td  align=\"left\">&nbsp;"+delareVec.elementAt(7).toString().trim()+"</td>";
+				strDetailHtml +="</tr>";
+			}
+			else
+			{
+				strDetailHtml +="<tr>";
+				strDetailHtml +="<td align=\"center\" class=\"bold\" colspan=\"2\">Dealer Information is not provided.</td>";
+				strDetailHtml +="</tr>";
+			}
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td colspan=\"2\" align=\"left\" class=\"bold\"><hr color=\"#ff722b\"></td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td colspan=\"2\" align=\"left\" class=\"bold\"> Student Information </td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" class=\"bold\"> Name: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+complainantVec.elementAt(4).toString().trim()+"</td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" class=\"bold\"> Address: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+complainantVec.elementAt(9).toString().trim()+"</td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" class=\"bold\"> City: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+infoVec.elementAt(2).toString().trim()+"</td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" class=\"bold\"> Email Id: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+complainantVec.elementAt(8).toString().trim()+"</td>";
+			strDetailHtml +="</tr>";
+			String temMno1="Not mention";
+		    if(complainantVec.elementAt(10).toString().trim().length()!=0)
+		    {
+		    	String temPno=complainantVec.elementAt(10).toString().trim().trim();
+				temMno1 = temPno.replace("~", "-");
+				
+			}
+			strDetailHtml +="<tr>";
+			strDetailHtml +="<td align=\"right\" class=\"bold\"> Mobile No.: </td>";
+			strDetailHtml +="<td  align=\"left\">&nbsp;"+temMno1+"</td>";
+			strDetailHtml +="</tr>";
+			strDetailHtml +="</table></td>";
+			strDetailHtml +="</tr>";
+			
+			  
+			  strDetailHtml+="</table>";
+			  strDetailHtml+="</div></td>";
+			  
+			  // End td for additional detail
+			
+			  
+			  	strDetailHtml+="</tr>";
+			  	strDetailHtml += "<tr align=\"left\" height=\"5\">";
+		        strDetailHtml += "<td colspan=\"2\"  height=\"5\" ><hr color=\"#ff722b\"></td>";
+		        strDetailHtml += "</tr>";
+		        strDetailHtml+="</table>";
+		        
+		        strDetailHtml+="<tr>";
+				strDetailHtml+="<td align=\"center\" colspan=\"2\"><input name=\"Submit\" type=\"submit\" id=\"Accept\"  value=\"Accept\" onClick=\"mentor(this.value)\">&nbsp;&nbsp;&nbsp;";
+				strDetailHtml+="<input name=\"cancel\" type=\"button\"  id=\"Reject\" value=\"Reject\" onClick=\"mentor1(this.value)\"></td>";
+				strDetailHtml+="</tr>";
+				
+				strDetailHtml += "<tr align=\"left\" height=\"5\" id=\"show\" style=\"display:none\">";
+		        strDetailHtml += "<td colspan=\"2\"  height=\"5\"></td>";
+		        strDetailHtml += "</tr>";
+		        
+		    	strDetailHtml += "<tr align=\"left\" height=\"5\" id=\"show\" >";
+		        strDetailHtml += "<td colspan=\"2\"  height=\"5\" >";
+		        strDetailHtml+="<table   width=\"100%\" valign=\"top\" >";
+		        if(pageid.equals("3"))
+		        {
+		        	
+					strDetailHtml +="<tr height=\"\">";
+					strDetailHtml +="<td colspan=\"2\"  align=\"left\" class=\"bold\"> Number Of Response By </td>";
+					strDetailHtml +="</tr>";
+					strDetailHtml +="<tr align=\"left\" valign=\"top\">";
+					strDetailHtml +="<td colspan=\"2\" class=\"bold\">";
+					strDetailHtml +="Student:&nbsp;<span class=\"bold\">"+Consumerresponse+"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+					strDetailHtml +="Company:&nbsp;<span class=\"bold\">"+brandresponse+"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+					strDetailHtml +="Total:&nbsp;<span class=\"bold\">"+totalresponse+"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+					strDetailHtml +="&nbsp;<span class=\"bold\"></span>";
+					strDetailHtml +="</td>";
+					strDetailHtml +="</tr>";
+					
+					strDetailHtml +="<tr>";
+					if(respid==0)
+					{
+						if(strDetailHtml.equalsIgnoreCase("failure"))
+						{
+							strDetailHtml+="<td height=\"20\"  colspan=\"2\"></td>";
+						}
+						else if(strResult.equalsIgnoreCase("success"))
+						{
+							strDetailHtml+="<td  height=\"20\" colspan=\"2\" ></td>";
+						}
+						if(result.equalsIgnoreCase("failure"))
+						{
+							strDetailHtml+="<td height=\"20\" c colspan=\"2\"></td>";
+						}
+						
+					}
+					strDetailHtml +="</tr>";
+		        
+		        
+					strDetailHtml += "<tr align=\"left\" >";
+			        strDetailHtml += "<td colspan=\"2\" valign=\"top\" align=\"left\" ><img id=\""+z+"\" onclick=\"showAddNew("+z+")\" style=\"cursor:hand\" src=\"../images/giveresponse.gif\" width=\"63\" height=\"19\" border=\"0\" alt=\"Click here to give response\"></img></td>";
+			        strDetailHtml += "</tr>";
+			        strDetailHtml +="<tr>";
+					strDetailHtml +="<td colspan=\"2\" align=\"right\" class=\"bold\"><hr color=\"#ff722b\"></td>";
+					strDetailHtml +="</tr>";
+					strDetailHtml+="<tr id=\"status"+z+"\" style=\"display:inline\" align=\"center\" >";
+					if(respid==0)
+					{
+						if(strDetailHtml.equalsIgnoreCase("failure"))
+						{
+							strDetailHtml+="<td height=\"20\"  colspan=\"2\"></td>";
+						}
+						else if(strResult.equalsIgnoreCase("success"))
+						{
+							strDetailHtml+="<td  height=\"20\" colspan=\"2\" ></td>";
+						}
+						if(result.equalsIgnoreCase("failure"))
+						{
+							strDetailHtml+="<td height=\"20\"  colspan=\"2\"></td>";
+						}
+						
+					}
+					
+					strDetailHtml+="<tr id=\"status1"+z+"\" style=\"display:none\" align=\"center\" >";
+					strDetailHtml+="<td height=\"20\"  colspan=\"2\"></td>";
+					strDetailHtml+="</tr>";
+					strDetailHtml+="<tr id=\"rowid"+z+"\" align=\"center\" style=\"display:none\">";
+					strDetailHtml+="<td valign=\"top\" colspan=\"2\"><form id=\""+z+"\" name=\"frmreply\" method=\"post\" action=\"responseSuccess.do\" >";
+					strDetailHtml+="<table width=\"100%\"  border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+					strDetailHtml+=" <tr>";
+					strDetailHtml+=" <td align=\"center\" colspan=\"4\"><textarea id=\"responsetext"+z+"\" name=\"responsetext\" cols=\"105\" rows=\"5\" ></textarea></td>";
+					strDetailHtml+=" </tr>";
+					strDetailHtml+=" <tr>";
+					strDetailHtml+=" <td colspan=\"4\" align=\"left\"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+					strDetailHtml+=" <input name=\"flag\" type=\"checkbox\" id=\"chkPublic"+z+"\" value=\"1\" onClick=\"validateCheckBox("+z+")\">";
+					strDetailHtml+=" Click to make this Response Private</td>";
+					strDetailHtml+="  </tr>";
+					strDetailHtml+="<input type=\"hidden\" name=\"respType\" value=\"Consumer\">";
+					strDetailHtml+="<input type=\"hidden\" name=\"respid\" value=\"0\">";
+					strDetailHtml+="<input type=\"hidden\" name=\"compId\" value=\""+numCompId+"\">";
+					 
+					strDetailHtml+="<tr>";
+					strDetailHtml+="<td align=\"center\" colspan=\"4\"><input name=\"Submit\" type=\"submit\"  value=\"Submit\" >&nbsp;&nbsp;&nbsp;";
+					strDetailHtml+="<input name=\"cancel\" type=\"button\"  id=\""+z+"\" value=\"Cancel\" onClick=\"hideAddNew(this.id)\"></td>";
+					
+					strDetailHtml+="</tr>";
+					strDetailHtml+=" </table>";
+					strDetailHtml+="</form>";
+					strDetailHtml+=" </td>";
+					strDetailHtml+="</tr>";
+					
+					
+					
+		        }
+				
+		        if(!pageid.equals("3") )
+		        {
+					strDetailHtml+="<tr  align=\"center\" >";
+					strDetailHtml+="<td colspan=\"2\" valign=\"top\">";
+					strDetailHtml+="<table width=\"100%\"  border=\"0\" cellpadding=\"0\" cellspacing=\"0\" >";
+					if(responseVec.size()>0)
+					{
+						String bgrow="#CCECFF",bgtab="#F0FAF9";
+						for(int i=0;i<responseVec.size();i++)
+						{
+							//////////System.out.println("responseVec>>>>>>>>in mdla>>>>>>"+responseVec);
+							z=z+1;
+							Vector tempVec =(Vector)responseVec.elementAt(i);
+							int responseId = Integer.parseInt(tempVec.elementAt(0).toString().trim());
+							String resptext = tempVec.elementAt(1).toString().trim();
+							String respDate = tempVec.elementAt(2).toString().trim();
+							String comp_type = tempVec.elementAt(5).toString().trim();
+							String fname = tempVec.elementAt(6).toString().trim();
+							String lname = tempVec.elementAt(7).toString().trim();
+							int cityId = Integer.parseInt(tempVec.elementAt(8).toString().trim());
+							String companyName = tempVec.elementAt(9).toString().trim();
+							String cityName = rootMaster.getPlaceName(getDataSource(request, "corpo"),cityId);
+							int response_flag = Integer.parseInt(tempVec.elementAt(11).toString().trim());
+							String strFMsg3 = "";
+							
+					       
+							String strMessage3 = resptext;
+							
+							for(int k=0; k<strMessage3.length(); k++)
+							{ 
+								int num = (int)strMessage3.charAt(k);
+								if(num == 10)
+								{
+									strFMsg3 = strFMsg3+"<br>"+strMessage3.charAt(k);
+								}
+								else
+								{
+									strFMsg3 = strFMsg3+strMessage3.charAt(k);
+								}
+							}
+							String comptype ="";
+							if(comp_type.equalsIgnoreCase("Advertiser"))
+							{
+								bgrow="#CCECFF";
+								bgtab="#F0FAF9";
+								comptype = "Brand";
+								
+							}
+							else if(comp_type.equalsIgnoreCase("Enterprise"))
+							{
+								bgrow="#FFEBFF";
+								bgtab="#FFF7FF";
+								comptype = "Core";
+							}
+							else if(comp_type.equalsIgnoreCase("Consumer"))
+							{
+								bgrow="#F9E1CC";
+							    bgtab="#FFFAF6";
+							    comptype = "Consumer";
+							}
+							
+							
+							
+						
+							
+							
+							strDetailHtml += " <tr align=\"left\">";
+							strDetailHtml += " <td bgcolor=\""+bgtab+"\" colspan=\"5\" height=\"20\"  ><table width=\"100%\" border=\"0\" height=\"25\"  cellspacing=\"0\" cellpadding=\"0\">";
+							strDetailHtml += " <tr>";
+							strDetailHtml += " <td width=\"100%\">";
+							strDetailHtml += "<table width=\"100%\" border=\"0\" height=\"25\"  cellspacing=\"0\" cellpadding=\"0\">";
+							strDetailHtml += " <tr bgcolor=\""+bgrow+"\">";
+							strDetailHtml += " <td width=\"39%\" bgcolor=\""+bgrow+"\" class=\"bold\" height=\"25\" >&nbsp;Response by "+comptype+":"; 
+							strDetailHtml+="<span >";
+							if(comptype.equalsIgnoreCase("Brand")){
+								
+								strDetailHtml += companyName;
+							}else{
+								
+								strDetailHtml +=fname+" "+lname;
+					        }
+							strDetailHtml += " </span></td>";
+							
+							
+							strDetailHtml+="<td align=\"right\" width=\"15%\" class=\"bold\">&nbsp;Date:</td>";
+							strDetailHtml+="<td><span  width=\"15%\" align=\"left\" >"+respDate+"</span></td>";
+							strDetailHtml+="<td align=\"left\" width=\"30%\" class=\"bold\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;City:<span  width=\"15%\" align=\"left\">"+cityName+"</span></td></table></td></tr>";
+							
+							
+							strDetailHtml += " <tr>";
+							strDetailHtml += " <td colspan=\"2\"  align=\"left\" valign=\"top\" class=\"bold\" width=\"100%\" height=\"45\"> <table height=\"100%\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td height=\"100%\" width=\"13%\"  valign=\"top\">&nbsp;Response Text: </td>";
+							strDetailHtml += " <td align=\"left\" valign=\"top\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td align=\"left\" valign=\"top\" width=\"100%\"  >"+strFMsg3+"</td>";
+							strDetailHtml += " </tr></table></td></tr></table></td></tr>";
+							
+							/*strDetailHtml += " <tr>";
+							strDetailHtml += " <td colspan=\"2\"  height=\"50\" align=\"left\" valign=\"top\" class=\"bold\" width=\"100%\"> <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td width=\"25%\"  valign=\"top\">&nbsp;Response Text: </td>";
+							strDetailHtml += " <td align=\"left\" valign=\"top\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td align=\"left\" valign=\"top\" width=\"100%\"   height=\"30\">"+strFMsg3+"</td>";
+							strDetailHtml += " </tr></table></td></tr></table></td></tr>";*/
+							
+							
+							
+							strDetailHtml += "<tr>";
+			                if((!(comptype.equalsIgnoreCase("Brand"))) && response_flag == 0){
+			                	strDetailHtml += " <td width=\"85%\" align=\"right\" valign=\"top\"  >";
+			                	strDetailHtml += " <img src=\"../images/reply.gif\" id=\""+z+"\" onclick=\"showAddNew("+z+")\" style=\"cursor:hand\" alt=\"Click here to give reply\" width=\"53\" height=\"19\" border=\"0\"></img>";
+			                 }
+			                else
+			                {
+			                	strDetailHtml += " <td width=\"17%\" align=\"center\" valign=\"top\" >";
+			                }
+			                strDetailHtml += "</td>";
+			                strDetailHtml += "</tr>";
+			                strDetailHtml+="<tr id=\"status"+z+"\" style=\"display:inline\" align=\"center\" >";
+			        		if(respid == responseId)
+			        		{
+			        			if(strDetailHtml.equalsIgnoreCase("failure"))
+			        			{
+			        				strDetailHtml+="<td height=\"20\"  colspan=\"4\">Response failure</td>";
+			        			}
+			        			else if(strResult.equalsIgnoreCase("success"))
+			        			{
+			        				strDetailHtml+="<td  height=\"20\" colspan=\"4\" >Response success</td>";
+			        			}
+			        			if(result.equalsIgnoreCase("failure"))
+			        			{
+			        				strDetailHtml+="<td height=\"20\"  colspan=\"5\">Please give reposnse text with in 1500 letters.</td>";
+			        			}
+			        			
+			        			
+			        		}
+			        		strDetailHtml+="</tr>";
+			        		strDetailHtml+="<tr id=\"status1"+z+"\" style=\"display:none\" align=\"center\" >";
+			        		strDetailHtml+="<td height=\"20\"  colspan=\"4\"></td>";
+			        		strDetailHtml+="</tr>";
+			        		strDetailHtml+="<tr id=\"rowid"+z+"\" align=\"center\" style=\"display:none\">";
+			        		strDetailHtml+="<td valign=\"top\" colspan=\"4\"><form id=\""+z+"\" name=\"frmreply\" method=\"post\" action=\"responseSuccess.do\" >";
+			        		strDetailHtml+="<table width=\"100%\"  border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+			        		strDetailHtml+="<tr>";
+			        		strDetailHtml+="<td colspan=\"4\" align=\"center\"><textarea id=\"responsetext"+z+"\" name=\"responsetext\" cols=\"105\" rows=\"5\"  ></textarea></td>";
+			        		strDetailHtml+="</tr>";
+			        		strDetailHtml+=" <tr>";
+			        		strDetailHtml+=" <td colspan=\"4\" align=\"center\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+			        		strDetailHtml+=" <input name=\"flag\" type=\"checkbox\" id=\"chkPublic"+z+"\" value=\"1\"  onClick=\"validateCheckBox("+z+")\">";
+			        		strDetailHtml+=" <span class=\"bold\">Click to make this Response Private  </span></td>";
+			        		strDetailHtml+="  </tr>";
+			        		strDetailHtml+="<input type=\"hidden\" name=\"respType\" value=\""+comptype+"\">";
+			        		strDetailHtml+="<input type=\"hidden\" name=\"respid\" value=\""+responseId+"\">";
+			        		strDetailHtml+="<input type=\"hidden\" name=\"compId\" value=\""+numCompId+"\">";
+			        		strDetailHtml+="</tr>";
+			                strDetailHtml+="<tr>";
+			        		strDetailHtml+="<td colspan=\"4\" align=\"center\"><input name=\"Submit\" type=\"submit\"  value=\"Submit\" >&nbsp;&nbsp;&nbsp;";
+			        		strDetailHtml+="<input name=\"cancel\" type=\"button\"  id=\""+z+"\" value=\"Cancel\" onClick=\"hideAddNew(this.id)\"></td>";
+			        		
+			        		strDetailHtml+="</table>";
+			        		strDetailHtml+="</form>";
+			        		strDetailHtml+="  </td>";
+							strDetailHtml+="</tr>";
+							strDetailHtml+="</table>";
+							strDetailHtml+="  </td>";
+							strDetailHtml+="</tr>";
+						}
+						
+					}
+					else
+						
+					{  
+						
+						
+						strDetailHtml+="<tr  align=\"center\"  id=\"noresponse\" style=\"display:inline\" >";
+						strDetailHtml+="<td  colspan=\"2\" bgcolor=\"#CCFFFF\" class=\"bold\"> No Response</td>";
+						strDetailHtml+="</tr>";
+						
+					}
+		        
+					strDetailHtml+="</table>";
+					strDetailHtml+="  </td>";
+					strDetailHtml+="</tr>";
+					
+					strDetailHtml += "<tr align=\"left\" height=\"5\">";
+			        strDetailHtml += "<td colspan=\"2\"  height=\"5\" ><hr color=\"#ff722b\"></td>";
+			        strDetailHtml += "</tr>";
+		        
+		        }
+		        
+		    	
+		        
+		        strDetailHtml+="</table>";
+			
+			return strDetailHtml;
+			
+		
+		
+		
+		
+	}
+	private String getPages(int minVal, int maxVal, int numSize, String getPages)
+	{
+		String strResult ="<select name=\"paging\" onchange=\"retrieveMReqDetailURL('mentorReqDetail.do?'+this.value);\">";
+		int numMin = 0;
+		int numPage = 1;
+		for(int i=0; i<numSize; i=i+maxVal)
+		{
+			numMin = i;
+			
+			if(minVal == numMin)
+			{
+				strResult += "<option value=\"numMin=" + numMin+"\" Selected>Page" + numPage + "</option>";
+			}
+			else
+			{
+				strResult += "<option value=\"numMin=" + numMin+"\">Page" + numPage + "</option>";
+			}
+				numPage++;
+		}
+		strResult += "</select>";
+		return strResult;
+	}
+	/**
+	 * Ajay Kumar Jha
+	 * @param numCopmId
+	 * @return
+	 */
+	private String getComplaintUnnamed(HttpServletRequest request, int numCopmId, int numbrandId, int numCatId)
+	{
+		////////////System.out.println("numCopmId "+numCopmId);
+		////////////System.out.println("numbrandId "+numbrandId);
+		////////////System.out.println("numCatId "+numCatId);
+		IndvMaster im = new IndvMaster();
+		AdvtMaster am = new AdvtMaster();
+		Vector unnamedVec = am.getComplaintUnnamedMap(getDataSource(request, "corpo"), numbrandId, numCatId);
+		////////////System.out.println("unnamedVec Size "+unnamedVec.size());
+		////////////System.out.println("unnamedVec "+unnamedVec);
+		Vector dataVec = im.getComplaintUnnamedData(getDataSource(request, "corpo"), numCopmId);
+		//////////////System.out.println("Data Vec in Details Arun Size "+dataVec.size());
+		//////////////System.out.println("Data Vec in Details Arun "+dataVec);
+		String strResult = "";
+		if(unnamedVec.size() == 175 && dataVec.size() == 35)
+		{
+			Vector<String> FinalDataVec = new Vector<String>();
+			if(dataVec.size()>10)
+			{
+				int numCount2=0, numCount3=3, numCount4=4;
+				String strFlag1="";
+				for(int k=0; k<10; k++)
+				{
+					String strSubCat1 = dataVec.elementAt(k).toString().trim();
+					String strSubCatVal1 = "";
+					if(strSubCat1.length()>0)
+					{
+						char [] chars = strSubCat1.toCharArray();
+						String strFlag="";
+						for(int j=0; j<chars.length; j++)
+						{
+							strFlag +=(Character.isDigit(chars[j])) ? "false" : "true";
+						}
+						if(strFlag.indexOf("true") <= -1)
+						{
+							if(k==0)
+							{
+								strSubCatVal1 = im.getValueSubCat1(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==1)
+							{
+								strSubCatVal1 = im.getValueSubCat2(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==2)
+							{
+								strSubCatVal1 = im.getValueSubCat3(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==3)
+							{
+								strSubCatVal1 = im.getValueSubCat4(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==4)
+							{
+								strSubCatVal1 = im.getValueSubCat5(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==5)
+							{
+								strSubCatVal1 = im.getValueSubCat6(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==6)
+							{
+								strSubCatVal1 = im.getValueSubCat7(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==7)
+							{
+								strSubCatVal1 = im.getValueSubCat8(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==8)
+							{
+								strSubCatVal1 = im.getValueSubCat9(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(k==9)
+							{
+								strSubCatVal1 = im.getValueSubCat10(getDataSource(request, "corpo"), Integer.parseInt(strSubCat1.trim()));
+							}
+							if(strSubCatVal1.equalsIgnoreCase("failure"))
+							{
+								strSubCatVal1="";
+							}
+						}
+						else
+						{
+							strSubCatVal1 = strSubCat1;
+						}
+					}
+					String strFName=unnamedVec.elementAt(numCount2).toString().trim();
+					//String strType = unnamedVec.elementAt(i+1).toString().trim();
+					//String strValue = unnamedVec.elementAt(i+2).toString().trim();
+					int numMandatory = Integer.parseInt(unnamedVec.elementAt(numCount3).toString().trim());
+					int numVisible = Integer.parseInt(unnamedVec.elementAt(numCount4).toString().trim());
+					if(numMandatory==1)
+					{
+						strFName=strFName+":";
+					}
+					else
+					{
+						strFName = strFName+":";
+					}
+					strFlag1 +=(numVisible == 1) ? "false" : "true";
+					//////////////System.out.println("str Flag1 "+strFlag1);
+					if((strFlag1.indexOf("true") <= -1) && (!strFName.equalsIgnoreCase(""))&&(!strSubCatVal1.equalsIgnoreCase("")))
+					{
+						FinalDataVec.add(strFName+"~"+strSubCatVal1);
+					}
+					numCount2=numCount2+5;
+					numCount3=numCount3+5;
+					numCount4=numCount4+5;
+				}
+				//////////////System.out.println("FinalDataVec "+ FinalDataVec);
+			}
+			int numCount1=10;
+			for(int i=50; i<unnamedVec.size(); i=i+5)
+			{
+				String strFName=unnamedVec.elementAt(i).toString().trim();
+				//String strType = unnamedVec.elementAt(i+1).toString().trim();
+				//String strValue = unnamedVec.elementAt(i+2).toString().trim();
+				int numMandatory = Integer.parseInt(unnamedVec.elementAt(i+3).toString().trim());
+				int numVisible = Integer.parseInt(unnamedVec.elementAt(i+4).toString().trim());
+				if(numMandatory==1)
+				{
+					strFName=strFName+":";
+				}
+				else
+				{
+					strFName = strFName+":";
+				}
+				if((numVisible==1) && (!strFName.equalsIgnoreCase(""))&&(!dataVec.elementAt(numCount1).toString().trim().equalsIgnoreCase("")))
+				{
+					FinalDataVec.add(strFName+"~"+dataVec.elementAt(numCount1).toString().trim());
+				}
+				numCount1++;
+				//////////////System.out.println("FinalDataVec "+i+" "+FinalDataVec);
+			}
+			//////////////System.out.println("Final Data Vec Size "+FinalDataVec.size());
+			////////////System.out.println("Final Data Vec "+FinalDataVec);
+			for(int j=0; j<FinalDataVec.size(); j++)
+			{
+				String strFVal = "", strVal="";
+				String strValue = FinalDataVec.elementAt(j).toString().trim();
+				String arrValue[] = strValue.split("~");
+				if(arrValue.length==1)
+				{
+					strFVal = arrValue[0];
+					strVal="";
+				}
+				else
+				{
+					strFVal = arrValue[0];
+					strVal= arrValue[1];
+				}
+				strResult +="<tr>";
+				strResult +="<td align=\"right\" class=\"bold\">"+strFVal+"</td>";
+				strResult +="<td >&nbsp;"+strVal+"</td>";
+				strResult +="</tr>";
+			}
+		}
+		
+		return strResult;
+	}
+}

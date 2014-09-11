@@ -1,0 +1,46 @@
+<project name="ems-java" basedir="." default="main">
+
+    <property name="src.dir"     value="src"/>
+
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="war.dir"     value="${build.dir}/war"/>
+
+     <property name="debuglevel" value="source,lines,vars"/>
+
+    <path id="external.jars">
+        <fileset dir="jar" includes="**/*.jar"/>
+    </path>
+
+    <path id="project.classpath">
+        <pathelement location="./jar"/>
+        <path refid="external.jars" />
+    </path>
+
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac includeantruntime="false" debug="true" debuglevel="${debuglevel}" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="project.classpath" encoding="iso-8859-1" />
+    </target>
+
+    <target name="war" depends="compile">
+        <mkdir dir="${war.dir}"/>
+        <war destfile="${war.dir}/${ant.project.name}.war" basedir="${classes.dir}" webxml="WebRoot/WEB-INF/web.xml">
+            <fileset dir="WebRoot" casesensitive="yes">
+ 		 <include name="**/*"/>
+            </fileset>
+            <fileset dir="jar" casesensitive="yes">
+                 <include name="**/*"/>
+            </fileset>
+        </war>
+    </target>
+
+    <target name="clean-build" depends="clean,war"/>
+
+    <target name="main" depends="clean"/>
+
+</project>
