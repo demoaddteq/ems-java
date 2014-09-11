@@ -13,7 +13,7 @@
     </path>
 
     <path id="project.classpath">
-        <pathelement location="./jar"/>
+        <pathelement location="/Network/Servers/ldap-nj.addteq.com/Users/wenchao.peng/projects/ant_projects/assignment2a/ems-java/jarjar"/>
         <path refid="external.jars" />
     </path>
 
@@ -29,7 +29,7 @@
 
     <target name="war" depends="compile">
         <mkdir dir="${war.dir}"/>
-        <war destfile="${war.dir}/${ant.project.name}.war" basedir="${classes.dir}" webxml="WebRoot/WEB-INF/web.xml">
+        <war destfile="${war.dir}/${ant.project.name}.war" basedir="${classes.dir}" webxml="/Network/Servers/ldap-nj.addteq.com/Users/wenchao.peng/projects/ant_projects/assignment2a/ems-java/WebRoot/WEB-INF/web.xml">
             <fileset dir="WebRoot" casesensitive="yes">
  		 <include name="**/*"/>
             </fileset>
