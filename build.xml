@@ -38,6 +38,13 @@
             </fileset>
         </war>
     </target>
+    
+    <target name="unittest">
+      <junit haltonfailure="true" printsummary="true">
+      <test name="com.tutorialspoint.UtilsTest"/>
+    </junit>
+   </target>
+    
 
     <target name="clean-build" depends="clean,war"/>
 
